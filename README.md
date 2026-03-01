@@ -1,10 +1,8 @@
 # Scroll-Driven Hero Section Animation
-### Assignment Submission — ItzFizz
-
 ---
 
 ## Live Demo
-🔗 [View Live](https://Aslam6674.github.io/itzfizz-hero/)
+🔗 [View Live](https://github.com/Aslam6674/itz.git)
 
 ---
 
@@ -81,8 +79,6 @@ I kept it as a single file intentionally — no bundler, no `npm install`, nothi
 4. Click **"Go Live"** in the bottom-right corner
 5. Visit `http://127.0.0.1:5500/index.html`
 
-> ⚠️ Don't open the file directly in the browser (`file://`) — some scripts may not load correctly. Use Live Server instead.
-
 ---
 
 ## Key Things I Learned
@@ -113,5 +109,3 @@ Tested and working in:
 - ✅ Edge 120+
 
 ---
-
-*Assignment submitted as part of the frontend development evaluation.*

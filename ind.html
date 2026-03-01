@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ITZFIZZ — Scroll Hero</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #e8c96e;
+      --dark: #0a0a0a;
+      --mid: #111111;
+      --light-text: #e8e0d0;
+      --muted: #5a5348;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      background: var(--dark);
+      scroll-behavior: auto;
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--light-text);
+      font-family: 'Space Mono', monospace;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.35;
+    }
+
+    #pin-wrapper {
+      position: relative;
+    }
+
+    .hero {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      grid-template-rows: 1fr;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .headline-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 0;
+      position: relative;
+      z-index: 10;
+      gap: 0;
+    }
+
+    .headline-letter {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(1.6rem, 3vw, 2.8rem);
+      letter-spacing: 0.05em;
+      color: var(--light-text);
+      line-height: 1;
+      opacity: 0;
+      transform: translateX(-30px);
+      display: block;
+    }
+
+    .headline-letter.space {
+      height: clamp(1rem, 2vw, 1.8rem);
+    }
+
+    .car-zone {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+
+    .car-svg-wrap {
+      position: absolute;
+      width: 130%;
+      left: -15%;
+      top: 50%;
+      transform: translateY(-50%);
+      will-change: transform;
+    }
+
+    .car-svg-wrap svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 60px rgba(201,168,76,0.25));
+    }
+
+    .stats-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 2rem 3rem 1rem;
+      gap: 2.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .stat-item {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 5vw, 5rem);
+      color: var(--gold);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      margin: 0.5rem 0;
+      opacity: 0.6;
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.5;
+      max-width: 180px;
+    }
+    .gold-rule {
+      position: absolute;
+      left: 80px;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+      opacity: 0.2;
+    }
+
+    .gold-rule-top { top: 12%; }
+    .gold-rule-bottom { bottom: 12%; }
+    .corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      opacity: 0.5;
+    }
+    .corner-tl { top: 20px; left: 90px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+    .corner-tr { top: 20px; right: 20px; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+    .corner-bl { bottom: 20px; left: 90px; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+    .corner-br { bottom: 20px; right: 20px; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+    #scroll-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--gold);
+      width: 0%;
+      z-index: 1000;
+      transition: none;
+    }
+    .left-accent {
+      position: absolute;
+      left: 78px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+      opacity: 0.25;
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+      z-index: 20;
+    }
+
+    .scroll-hint span {
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .scroll-hint-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(180deg, var(--gold), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.2; transform: scaleY(1); }
+      50% { opacity: 0.8; transform: scaleY(0.6); }
+    }
+    .bg-radial {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 55% 50%, #1a1508 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .content-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 2rem;
+      background: var(--dark);
+      position: relative;
+    }
+
+    .content-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+      opacity: 0.3;
+    }
+
+    .content-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 4rem);
+      color: var(--light-text);
+      text-align: center;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+
+    .content-heading em {
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .content-body {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      max-width: 400px;
+      line-height: 2;
+    }
+    .brand-mark {
+      position: absolute;
+      top: 28px;
+      left: 100px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      opacity: 0.8;
+      z-index: 20;
+    }
+    .year-mark {
+      position: absolute;
+      top: 28px;
+      right: 28px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      z-index: 20;
+    }
+    @media (max-width: 768px) {
+      .hero {
+        grid-template-columns: 50px 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      .stats-panel {
+        display: none;
+      }
+      .car-zone { grid-column: 2; }
+      .headline-letter { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="scroll-bar"></div>
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useEffect, useRef } = React;
+
+  const LETTERS = "W E L C O M E".split("");
+
+  const STATS = [
+    { number: "58%", label: "Increase in\npick up point use" },
+    { number: "23%", label: "Decreased in\ncustomer phone calls" },
+    { number: "27%", label: "Increase in\npick up point use" },
+    { number: "40%", label: "Decreased in\ncustomer phone calls" },
+  ];
+
+  const CarSVG = () => (
+    <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <defs>
+        <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2a2318" />
+          <stop offset="40%" stopColor="#1a1510" />
+          <stop offset="100%" stopColor="#0d0b08" />
+        </linearGradient>
+        <linearGradient id="glassGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1e3a4a" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#0a1a24" stopOpacity="0.6" />
+        </linearGradient>
+        <linearGradient id="goldLine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#c9a84c" stopOpacity="0" />
+          <stop offset="30%" stopColor="#c9a84c" />
+          <stop offset="70%" stopColor="#e8c96e" />
+          <stop offset="100%" stopColor="#c9a84c" stopOpacity="0" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="bodyGlow">
+          <feGaussianBlur stdDeviation="8" result="blur" />
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <ellipse cx="400" cy="370" rx="320" ry="18" fill="#c9a84c" opacity="0.05" />
+
+      <path
+        d="M120,200 C120,170 140,130 180,115 L240,100 C280,92 330,88 400,88 C470,88 520,92 560,100 L620,115 C660,130 680,170 680,200 C680,230 660,270 620,285 L560,300 C520,308 470,312 400,312 C330,312 280,308 240,300 L180,285 C140,270 120,230 120,200 Z"
+        fill="url(#bodyGrad)"
+        stroke="#2a2318"
+        strokeWidth="1"
+      />
+
+      <path
+        d="M200,145 C240,130 310,122 400,122 C490,122 560,130 600,145"
+        stroke="#c9a84c"
+        strokeWidth="0.5"
+        opacity="0.4"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M290,140 C320,128 360,122 400,122 C440,122 480,128 510,140 L530,175 C510,168 460,162 400,162 C340,162 290,168 270,175 Z"
+        fill="url(#glassGrad)"
+        stroke="#1a4a5a"
+        strokeWidth="0.8"
+        opacity="0.9"
+      />
+
+      <path
+        d="M290,260 C320,272 360,278 400,278 C440,278 480,272 510,260 L530,225 C510,232 460,238 400,238 C340,238 290,232 270,225 Z"
+        fill="url(#glassGrad)"
+        stroke="#1a4a5a"
+        strokeWidth="0.8"
+        opacity="0.7"
+      />
+
+      <path
+        d="M270,175 C290,168 340,162 400,162 C460,162 510,168 530,175 L530,225 C510,232 460,238 400,238 C340,238 290,232 270,225 Z"
+        fill="#161208"
+        stroke="#c9a84c"
+        strokeWidth="0.4"
+        opacity="0.85"
+      />
+
+      <rect x="396" y="88" width="8" height="224" fill="url(#goldLine)" opacity="0.5" />
+
+      <path d="M200,155 C230,148 270,145 290,145" stroke="#c9a84c" strokeWidth="0.6" opacity="0.5" strokeLinecap="round" />
+      <path d="M200,245 C230,252 270,255 290,255" stroke="#c9a84c" strokeWidth="0.6" opacity="0.5" strokeLinecap="round" />
+
+      <path d="M600,155 C570,148 530,145 510,145" stroke="#c9a84c" strokeWidth="0.6" opacity="0.5" strokeLinecap="round" />
+      <path d="M600,245 C570,252 530,255 510,255" stroke="#c9a84c" strokeWidth="0.6" opacity="0.5" strokeLinecap="round" />
+
+      <path
+        d="M150,160 C135,170 128,185 128,200 C128,215 135,230 150,240 L165,247 C150,237 143,220 143,200 C143,180 150,163 165,153 Z"
+        fill="#0a0905"
+        stroke="#1a1510"
+        strokeWidth="1"
+      />
+      <ellipse cx="155" cy="200" rx="22" ry="14" fill="#111" stroke="#c9a84c" strokeWidth="0.8" opacity="0.9" />
+      <ellipse cx="155" cy="200" rx="12" ry="8" fill="#1a1510" stroke="#c9a84c" strokeWidth="0.5" opacity="0.7" />
+      {[0,60,120,180,240,300].map(a => (
+        <line key={a}
+          x1={155} y1={200}
+          x2={155 + 10*Math.cos(a*Math.PI/180)}
+          y2={200 + 6*Math.sin(a*Math.PI/180)}
+          stroke="#c9a84c" strokeWidth="0.5" opacity="0.6"
+        />
+      ))}
+
+      <path
+        d="M650,160 C665,170 672,185 672,200 C672,215 665,230 650,240 L635,247 C650,237 657,220 657,200 C657,180 650,163 635,153 Z"
+        fill="#0a0905"
+        stroke="#1a1510"
+        strokeWidth="1"
+      />
+      <ellipse cx="645" cy="200" rx="22" ry="14" fill="#111" stroke="#c9a84c" strokeWidth="0.8" opacity="0.9" />
+      <ellipse cx="645" cy="200" rx="12" ry="8" fill="#1a1510" stroke="#c9a84c" strokeWidth="0.5" opacity="0.7" />
+      {[0,60,120,180,240,300].map(a => (
+        <line key={a}
+          x1={645} y1={200}
+          x2={645 + 10*Math.cos(a*Math.PI/180)}
+          y2={200 + 6*Math.sin(a*Math.PI/180)}
+          stroke="#c9a84c" strokeWidth="0.5" opacity="0.6"
+        />
+      ))}
+
+      <path d="M240,105 L200,118 C185,124 165,138 155,155" stroke="#c9a84c" strokeWidth="0.6" opacity="0.35" strokeLinecap="round" />
+      <path d="M560,105 L600,118 C615,124 635,138 645,155" stroke="#c9a84c" strokeWidth="0.6" opacity="0.35" strokeLinecap="round" />
+
+      <path d="M165,155 C180,148 210,143 240,140" stroke="#e8c96e" strokeWidth="1.5" opacity="0.7" strokeLinecap="round" filter="url(#glow)" />
+      <path d="M635,155 C620,148 590,143 560,140" stroke="#e8c96e" strokeWidth="1.5" opacity="0.7" strokeLinecap="round" filter="url(#glow)" />
+
+      <path d="M165,245 C180,252 210,257 240,260" stroke="#c0392b" strokeWidth="1.2" opacity="0.8" strokeLinecap="round" filter="url(#glow)" />
+      <path d="M635,245 C620,252 590,257 560,260" stroke="#c0392b" strokeWidth="1.2" opacity="0.8" strokeLinecap="round" filter="url(#glow)" />
+
+      <rect x="355" y="105" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+      <rect x="373" y="105" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+      <rect x="419" y="105" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+      <rect x="437" y="105" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+
+      <rect x="355" y="277" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+      <rect x="373" y="277" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+      <rect x="419" y="277" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+      <rect x="437" y="277" width="8" height="18" rx="2" fill="#c9a84c" opacity="0.15" />
+
+      <ellipse cx="400" cy="200" rx="200" ry="80" fill="#c9a84c" opacity="0.02" />
+    </svg>
+  );
+
+  function App() {
+    const heroRef = useRef(null);
+    const carRef = useRef(null);
+    const lettersRef = useRef([]);
+    const statsRef = useRef([]);
+    const scrollHintRef = useRef(null);
+
+    useEffect(() => {
+      gsap.registerPlugin(ScrollTrigger);
+
+      const ctx = gsap.context(() => {
+        gsap.to(lettersRef.current, {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          stagger: 0.04,
+          ease: "power3.out",
+          delay: 0.3,
+        });
+        gsap.to(statsRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.15,
+          ease: "power2.out",
+          delay: 0.8,
+        });
+        gsap.to(scrollHintRef.current, {
+          opacity: 1,
+          duration: 1,
+          delay: 1.8,
+          ease: "power2.inOut",
+        });
+        ScrollTrigger.create({
+          trigger: "body",
+          start: "top top",
+          end: "bottom bottom",
+          onUpdate: (self) => {
+            document.getElementById("scroll-bar").style.width = (self.progress * 100) + "%";
+          },
+        });
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: "#pin-wrapper",
+            start: "top top",
+            end: "+=200%",
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1,
+          }
+        })
+        .to(carRef.current, {
+          x: "20%",
+          rotateZ: 8,
+          scale: 1.08,
+          duration: 0.4,
+          ease: "power2.inOut",
+        })
+        .to(carRef.current, {
+          x: "-15%",
+          rotateZ: -5,
+          scale: 1.15,
+          duration: 0.4,
+          ease: "power2.inOut",
+        })
+        .to(carRef.current, {
+          x: "0%",
+          rotateZ: 0,
+          scale: 1,
+          duration: 0.2,
+          ease: "power2.out",
+        });
+
+        gsap.to(lettersRef.current, {
+          y: -60,
+          opacity: 0.3,
+          stagger: { each: 0.02, from: "end" },
+          scrollTrigger: {
+            trigger: "#pin-wrapper",
+            start: "top top",
+            end: "+=100%",
+            scrub: true,
+          },
+        });
+
+        gsap.to(statsRef.current, {
+          x: 30,
+          opacity: 0,
+          stagger: 0.05,
+          scrollTrigger: {
+            trigger: "#pin-wrapper",
+            start: "top top",
+            end: "+=80%",
+            scrub: true,
+          },
+        });
+
+      });
+
+      return () => ctx.revert();
+    }, []);
+
+    return (
+      <>
+        <div id="pin-wrapper" ref={heroRef}>
+          <section className="hero">
+            <div className="bg-radial" />
+            <div className="left-accent" />
+            <div className="gold-rule gold-rule-top" />
+            <div className="gold-rule gold-rule-bottom" />
+            <div className="corner corner-tl" />
+            <div className="corner corner-tr" />
+            <div className="corner corner-bl" />
+            <div className="corner corner-br" />
+            <div className="brand-mark">ITZFIZZ</div>
+            <div className="year-mark">EST. 2024</div>
+            <div className="headline-col">
+              {LETTERS.map((char, i) => (
+                <span
+                  key={i}
+                  className={`headline-letter ${char === " " ? "space" : ""}`}
+                  ref={el => lettersRef.current[i] = el}
+                >
+                  {char !== " " ? char : ""}
+                </span>
+              ))}
+            </div>
+            <div className="car-zone">
+              <div className="car-svg-wrap" ref={carRef}>
+                <CarSVG />
+              </div>
+            </div>
+            <div className="stats-panel">
+              {STATS.map((s, i) => (
+                <div
+                  key={i}
+                  className="stat-item"
+                  ref={el => statsRef.current[i] = el}
+                >
+                  <div className="stat-number">{s.number}</div>
+                  <div className="stat-divider" />
+                  <div className="stat-label">
+                    {s.label.split("\n").map((line, j) => (
+                      <span key={j}>{line}<br /></span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="scroll-hint" ref={scrollHintRef}>
+              <span>scroll</span>
+              <div className="scroll-hint-line" />
+            </div>
+          </section>
+        </div>
+        <section className="content-section">
+          <h2 className="content-heading">
+            Engineered for<br /><em>Excellence</em>
+          </h2>
+          <div className="content-body">
+            Performance metrics that redefine the standard.<br />
+            Built with precision. Measured in impact.
+          </div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "3rem 5rem",
+            marginTop: "4rem",
+            maxWidth: "600px",
+          }}>
+            {STATS.map((s, i) => (
+              <div key={i} style={{ opacity: 0, animation: `fadeUp 0.6s ease ${0.2 * i}s forwards` }}>
+                <div className="stat-number" style={{ fontSize: "clamp(2rem,4vw,3.5rem)" }}>{s.number}</div>
+                <div className="stat-divider" />
+                <div className="stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <style>{`
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+</body>
+</html>
